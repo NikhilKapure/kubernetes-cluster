@@ -4,7 +4,7 @@
 #
 # Copyright:: 2017, The Authors, All Rights Reserved.
 # Changing hostname -
-if (node['kubernetes-cluster']['os'] == "centos") & (node['kubernetes-cluster']['version'] == "7") & (node['kubernetes-cluster']['k8s-version'] == "1.7")
+if (node['platform'] == "centos") & (node['platform_version'] >= "7") & (node['kubernetes-cluster']['k8s-version'] == "1.7")
   else
   Chef::Log.info('Compatibility issue - This is not a CentOS 7 or K8S Version 1.7')
   return
@@ -204,3 +204,4 @@ bash 'creating kubernetes cluster' do
   not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
   #not_if "ifconfig | grep weave"
 end
+

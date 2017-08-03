@@ -23,5 +23,5 @@ default['kubernetes-cluster']['weave-network'] = "weave-network.yaml"
 
 default['kubernetes-cluster']['k8s-version'] = "1.7"
 default['kubernetes-cluster']['token'] = "7de59e.b859a71e082d41a5"
-default['kubernetes-cluster']['os'] = "centos"
-default['kubernetes-cluster']['version'] = "7"
+default['kubernetes-cluster']['agent'] = "master"
+
