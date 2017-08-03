@@ -69,6 +69,10 @@ yum_package 'kubeadm' do
   action :install
 end
 
+yum_package 'kubernetes-cni' do
+  action :install
+end
+
 yum_package 'ntp' do
   action :install
 end
