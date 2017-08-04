@@ -37,20 +37,6 @@ bash 'creating kubernetes cluster' do
 end
 #_____________________________________________________________________________________________
 #
-# Adding hostname entry in hosts file
-#_____________________________________________________________________________________________
-ruby_block 'adding_masternode_entry' do
-  block do
-    file = Chef::Util::FileEdit.new('/etc/hosts')
-    file.insert_line_if_no_match(/^#{node['kubernetes-cluster']['ipaddress']}.*/,  "#{node['kubernetes-cluster']['ipaddress']} #{node['kubernetes-cluster']['hostname']}")
-    file.search_file_replace_line(/^#{node['kubernetes-cluster']['ipaddress']}.*/, "#{node['kubernetes-cluster']['ipaddress']} #{node['kubernetes-cluster']['hostname']}")
-    file.write_file
-  end
-  only_if { ::File.exist?('/etc/hosts') }
-  not_if { ::File.readlines('/etc/hosts').grep(/^#{node['kubernetes-cluster']['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any?}
-end
-#_____________________________________________________________________________________________
-#
 # Generates yum_repository configs for latest CentOS release.
 # By default the base, extras, updates repos are enabled.
 #_____________________________________________________________________________________________
@@ -102,13 +88,38 @@ service 'kubelet' do
   pattern 'kubelet'
   action [:enable, :start]
 end
+reboot 'now' do
+  action :nothing
+  reason 'Cannot continue Chef run without a reboot.'
+  delay_mins 1
+end
+#_____________________________________________________________________________________________
+#
+# Adding hostname entry in hosts file
+#_____________________________________________________________________________________________
+ruby_block 'adding_masternode_entry' do
+  block do
+    file = Chef::Util::FileEdit.new('/etc/hosts')
+    file.insert_line_if_no_match(/^#{node['kubernetes-cluster']['ipaddress']}.*/,  "#{node['kubernetes-cluster']['ipaddress']} #{node['kubernetes-cluster']['hostname']}")
+    file.search_file_replace_line(/^#{node['kubernetes-cluster']['ipaddress']}.*/, "#{node['kubernetes-cluster']['ipaddress']} #{node['kubernetes-cluster']['hostname']}")
+    file.write_file
+  end
+  only_if { ::File.exist?('/etc/hosts') }
+  not_if { ::File.readlines('/etc/hosts').grep(/^#{node['kubernetes-cluster']['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any?}
+  notifies :reboot_now, 'reboot[now]', :immediately
+end
+bash 'creating kubernetes cluster' do
+  code <<-EOH
+      hostnamectl set-hostname "#{node['kubernetes-cluster']['hostname']}"
+    EOH
+end
+
 #_____________________________________________________________________________________________
 #
 # Start to create kubernetes cluster.
 #_____________________________________________________________________________________________
 bash 'creating kubernetes cluster' do
   code <<-EOH
-    sleep 60
     kubeadm init --token-ttl 0
     EOH
   not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
