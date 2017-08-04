@@ -227,36 +227,3 @@ bash 'Set KUBECONFIG' do
     EOH
     not_if "ifconfig | grep weave"
 end
-#_____________________________________________________________________________________________
-#
-# Verify weave network required ports are open or not.
-#_____________________________________________________________________________________________
-ruby_block "weave-npc" do
-  block do
-    server=node['kubernetes-cluster']['localhost']
-    port=node['kubernetes-cluster']['weave-npc']
-    begin
-      Timeout.timeout(5) do
-        Socket.tcp(server, port){}
-      end
-      Chef::Log.info "weave-npc=#{node['kubernetes-cluster']['weave-npc']} connections open"
-    rescue
-      Chef::Log.fatal "weave-npc=#{node['kubernetes-cluster']['weave-npc']} connections refused"
-    end
-  end
-end
-
-ruby_block "weaver" do
-  block do
-    server=node['kubernetes-cluster']['localhost']
-    port=node['kubernetes-cluster']['weaver']
-    begin
-      Timeout.timeout(5) do
-        Socket.tcp(server, port){}
-      end
-      Chef::Log.info "weaver=#{node['kubernetes-cluster']['weaver']} connections open"
-    rescue
-      Chef::Log.fatal "weaver=#{node['kubernetes-cluster']['weaver']} connections refused"
-    end
-  end
-end
