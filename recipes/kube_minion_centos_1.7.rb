@@ -1,9 +1,24 @@
+#
+# Cookbook Name:: kubernetes-cluster
+# Recipe:: default
+#
+# Copyright 2017, REAN Cloud
+#
+# All rights reserved - Do Not Redistribute
+#=======================================================================================================================
+#_____________________________________________________________________________________________
+#
+# Verify compatiblity.
+#____________________________________________________________________________________________
 if (node['kubernetes-cluster']['os'] == "centos") & (node['kubernetes-cluster']['version'] >= "7") & (node['kubernetes-cluster']['k8s-version'] == "1.7")
   else
   Chef::Log.info('OS Compatibility issue.')
   return
 end
-
+#_____________________________________________________________________________________________
+#
+# add master hostname in hosts file
+#_____________________________________________________________________________________________
 ruby_block 'allow_to_change_hostname' do
   block do
     file = Chef::Util::FileEdit.new('/etc/cloud/cloud.cfg')
@@ -25,9 +40,11 @@ ruby_block 'adding_masternode_entry' do
   only_if { ::File.exist?('/etc/hosts') }
   not_if { ::File.readlines('/etc/hosts').grep(/^#{node['kubernetes-cluster']['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any?}
 end
-
-#Kubernetes-Cluster::cluster_node_prep Generates yum_repository configs for latest CentOS release. By default the base, extras, updates repos are enabled.
-
+#_____________________________________________________________________________________________
+#
+# Generates yum_repository configs for latest CentOS release.
+# By default the base, extras, updates repos are enabled.
+#_____________________________________________________________________________________________
  yum_repository 'kubernetes' do
   description "CentOS-#{node['platform_version'].to_i} - Base"
   baseurl "http://yum.kubernetes.io/repos/kubernetes-el7-x86_64"
@@ -36,16 +53,20 @@ end
   repo_gpgcheck false
   action :create
 end
-
-#To install following packages.
-#Package list - docker kubelet kubeadm kubectl kubernetes-cni wget vim ntp
+#_____________________________________________________________________________________________
+#
+# To install following packages.
+# Package list - docker kubelet kubeadm kubectl kubernetes-cni wget vim ntp
+#_____________________________________________________________________________________________
 %w{wget vim docker kubelet kubeadm kubectl kubernetes-cni ntp}.each do |pkg|
   yum_package 'pkg' do
     action :install
   end
 end
-
-#Disable Selinux security.
+#_____________________________________________________________________________________________
+#
+# Disable Selinux security.
+#_____________________________________________________________________________________________
 ruby_block 'disable_selinux' do
   block do
     file = Chef::Util::FileEdit.new('/etc/selinux/config')
@@ -54,12 +75,10 @@ ruby_block 'disable_selinux' do
   end
   not_if 'grep -E "SELINUX.*=.*disabled.*" /etc/selinux/config'
 end
-
-#sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
-
-#To enable and start following services.
-#Service list - docker kubelet ntp
-
+#_____________________________________________________________________________________________
+#
+# To enable and start docker kubelet ntp services.
+#_____________________________________________________________________________________________
 service 'ntpd' do
   pattern 'ntpd'
   action [:enable, :start]
@@ -74,8 +93,10 @@ service 'kubelet' do
   pattern 'kubelet'
   action [:enable, :start]
 end
-
-# Verify All required ports are Open or not 
+#_____________________________________________________________________________________________
+#
+# Verify All required ports are open or not.
+#_____________________________________________________________________________________________ 
 ruby_block "kubelet" do
   block do
     server = "node['kubernetes-cluster']['localhost']"
@@ -105,12 +126,14 @@ ruby_block "kube-proxy" do
     end
   end
 end
-
+#_____________________________________________________________________________________________
+#
+# Join kubernetes cluster using kubeadm command with kube master token.
+#_____________________________________________________________________________________________
 bash 'creating kubernetes cluster' do
   code <<-EOH
     kubeadm join --token #{node['kubernetes-cluster']['token']} #{node['kubernetes-cluster']['ipaddress']}:#{node['kubernetes-cluster']['kube-apiserver']} --skip-preflight-checks
     EOH
   not_if { ::File.exist?('/etc/kubernetes/kubelet.conf') }
-  #not_if "ifconfig | grep weave"
 end
 
