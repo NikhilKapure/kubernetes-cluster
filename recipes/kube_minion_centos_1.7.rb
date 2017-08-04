@@ -59,7 +59,7 @@ end
 # Package list - docker kubelet kubeadm kubectl kubernetes-cni wget vim ntp
 #_____________________________________________________________________________________________
 %w{wget vim docker kubelet kubeadm kubectl kubernetes-cni ntp}.each do |pkg|
-  yum_package 'pkg' do
+  yum_package pkg do
     action :install
   end
 end
