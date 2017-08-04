@@ -1,12 +1,6 @@
-#
-# Cookbook:: Kubernetes-Cluster
-# Recipe:: default
-#
-# Copyright:: 2017, The Authors, All Rights Reserved.
-# Changing hostname -
 if (node['platform'] == "centos") & (node['platform_version'] >= "7") & (node['kubernetes-cluster']['k8s-version'] == "1.7")
   else
-  Chef::Log.info('Compatibility issue - This is not a CentOS 7 or K8S Version 1.7')
+  Chef::Log.info('OS Compatibility issue.')
   return
 end
 
@@ -44,34 +38,10 @@ end
 
 #To install following packages.
 #Package list - docker kubelet kubeadm kubectl kubernetes-cni wget vim ntp
-yum_package 'wget' do
-  action :install
-end
-
-yum_package 'vim' do
-  action :install
-end
-yum_package 'docker' do
-  action :install
-end
-yum_package 'kubelet' do
-  action :install
-end
-
-yum_package 'kubeadm' do
-  action :install
-end
-
-yum_package 'kubectl' do
-  action :install
-end
-
-yum_package 'kubernetes-cni' do
-  action :install
-end
-
-yum_package 'ntp' do
-  action :install
+%w{wget vim docker kubelet kubeadm kubectl kubernetes-cni ntp}.each do |pkg|
+  yum_package 'pkg' do
+    action :install
+  end
 end
 
 #Disable Selinux security.
@@ -109,8 +79,8 @@ end
 # Verify All required ports are Open or not 
 ruby_block "kubelet" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['kubelet']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['kubelet']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -124,8 +94,8 @@ end
 
 ruby_block "kube-scheduler" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['kube-scheduler']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['kube-scheduler']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -139,8 +109,8 @@ end
 
 ruby_block "kube-controlle" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['kube-controlle']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['kube-controlle']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -154,8 +124,8 @@ end
 
 ruby_block "kube-proxy" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['kube-proxy']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['kube-proxy']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -169,8 +139,8 @@ end
 
 ruby_block "kube-apiserver" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['kube-apiserver']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['kube-apiserver']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -184,8 +154,8 @@ end
 
 ruby_block "etcd" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['etcd']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['etcd']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -205,3 +175,63 @@ bash 'creating kubernetes cluster' do
   #not_if "ifconfig | grep weave"
 end
 
+bash 'Set KUBECONFIG' do
+  code <<-EOH
+    sudo cp /etc/kubernetes/admin.conf $HOME/
+    sudo chown $(id -u):$(id -g) $HOME/admin.conf
+    export KUBECONFIG=$HOME/admin.conf
+    EOH
+end
+
+directory '/etc/weave-networking' do
+  owner 'root'
+  group 'root'
+  mode '644'
+  action :create
+end
+
+cookbook_file '/etc/weave-networking/weave-network.yaml' do
+  source 'weave-network.yaml'
+  owner 'root'
+  group 'root'
+  mode '644'
+  action :create
+end
+
+bash 'configure weave network' do
+  code <<-EOH
+    kubectl apply --filename "/etc/weave-networking/weave-network.yaml"
+    EOH
+  #not_if "#{node['network']['interfaces']['weave']}"
+  not_if "ifconfig | grep weave"
+end
+
+ruby_block "weave-npc" do
+  block do
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['weave-npc']"
+    begin
+      Timeout.timeout(5) do
+        Socket.tcp(server, port){}
+      end
+      Chef::Log.info "weave-npc=#{node['kubernetes-cluster']['weave-npc']} connections open"
+    rescue
+      Chef::Log.fatal "weave-npc=#{node['kubernetes-cluster']['weave-npc']} connections refused"
+    end
+  end
+end
+
+ruby_block "weaver" do
+  block do
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['weaver']"
+    begin
+      Timeout.timeout(5) do
+        Socket.tcp(server, port){}
+      end
+      Chef::Log.info "weaver=#{node['kubernetes-cluster']['weaver']} connections open"
+    rescue
+      Chef::Log.fatal "weaver=#{node['kubernetes-cluster']['weaver']} connections refused"
+    end
+  end
+end

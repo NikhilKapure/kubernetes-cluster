@@ -1,18 +1,6 @@
-#
-# Cookbook:: Kubernetes-Cluster
-# Recipe:: default
-#
-# Copyright:: 2017, The Authors, All Rights Reserved.
-
-##
-# Cookbook:: Kubernetes-Cluster
-# Recipe:: default
-#
-# Copyright:: 2017, The Authors, All Rights Reserved.
-# Changing hostname -
-if (node['kubernetes-cluster']['os'] == "centos") & (node['kubernetes-cluster']['version'] == "7") & (node['kubernetes-cluster']['k8s-version'] == "1.7")
+if (node['kubernetes-cluster']['os'] == "centos") & (node['kubernetes-cluster']['version'] >= "7") & (node['kubernetes-cluster']['k8s-version'] == "1.7")
   else
-  Chef::Log.info('Compatibility issue - This is not a CentOS 7 or K8S Version 1.7')
+  Chef::Log.info('OS Compatibility issue.')
   return
 end
 
@@ -51,30 +39,10 @@ end
 
 #To install following packages.
 #Package list - docker kubelet kubeadm kubectl kubernetes-cni wget vim ntp
-yum_package 'wget' do
-  action :install
-end
-
-yum_package 'vim' do
-  action :install
-end
-yum_package 'docker' do
-  action :install
-end
-yum_package 'kubelet' do
-  action :install
-end
-
-yum_package 'kubeadm' do
-  action :install
-end
-
-yum_package 'kubernetes-cni' do
-  action :install
-end
-
-yum_package 'ntp' do
-  action :install
+%w{wget vim docker kubelet kubeadm kubectl kubernetes-cni ntp}.each do |pkg|
+  yum_package 'pkg' do
+    action :install
+  end
 end
 
 #Disable Selinux security.
@@ -110,8 +78,8 @@ end
 # Verify All required ports are Open or not 
 ruby_block "kubelet" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['kubelet']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['kubelet']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -125,8 +93,8 @@ end
 
 ruby_block "kube-proxy" do
   block do
-    server = "#{node['kubernetes-cluster']['localhost']}"
-    port = "#{node['kubernetes-cluster']['kube-proxy']}"
+    server = "node['kubernetes-cluster']['localhost']"
+    port = "node['kubernetes-cluster']['kube-proxy']"
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
