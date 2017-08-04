@@ -29,6 +29,12 @@ ruby_block 'allow_to_change_hostname' do
   only_if { ::File.exist?('/etc/cloud/cloud.cfg') }
   not_if { ::File.readlines('/etc/cloud/cloud.cfg').grep(/^preserve_hostname:\s*true/).any?}
 end
+
+bash 'creating kubernetes cluster' do
+  code <<-EOH
+      hostnamectl set-hostname "#{node['kubernetes-cluster']['hostname']}"
+    EOH
+end
 #_____________________________________________________________________________________________
 #
 # Adding hostname entry in hosts file
@@ -95,6 +101,16 @@ end
 service 'kubelet' do
   pattern 'kubelet'
   action [:enable, :start]
+end
+#_____________________________________________________________________________________________
+#
+# Start to create kubernetes cluster.
+#_____________________________________________________________________________________________
+bash 'creating kubernetes cluster' do
+  code <<-EOH
+    kubeadm init --token-ttl 0
+    EOH
+  not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
 end
 #_____________________________________________________________________________________________
 #
@@ -188,16 +204,6 @@ ruby_block "etcd" do
       Chef::Log.fatal "etcd=#{node['kubernetes-cluster']['etcd']} connections refused"
     end
   end
-end
-#_____________________________________________________________________________________________
-#
-# Start to create kubernetes cluster.
-#_____________________________________________________________________________________________
-bash 'creating kubernetes cluster' do
-  code <<-EOH
-    kubeadm init --token-ttl 0 --skip-preflight-checks
-    EOH
-  not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
 end
 #_____________________________________________________________________________________________
 #
