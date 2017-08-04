@@ -102,8 +102,8 @@ end
 #_____________________________________________________________________________________________
 ruby_block "kubelet" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['kubelet']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['kubelet']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -117,8 +117,8 @@ end
 
 ruby_block "kube-scheduler" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['kube-scheduler']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['kube-scheduler']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -132,8 +132,8 @@ end
 
 ruby_block "kube-controlle" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['kube-controlle']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['kube-controlle']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -147,8 +147,8 @@ end
 
 ruby_block "kube-proxy" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['kube-proxy']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['kube-proxy']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -162,8 +162,8 @@ end
 
 ruby_block "kube-apiserver" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['kube-apiserver']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['kube-apiserver']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -177,8 +177,8 @@ end
 
 ruby_block "etcd" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['etcd']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['etcd']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -195,7 +195,7 @@ end
 #_____________________________________________________________________________________________
 bash 'creating kubernetes cluster' do
   code <<-EOH
-    kubeadm init --token-ttl 0
+    kubeadm init --token-ttl 0 --skip-preflight-checks
     EOH
   not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
 end
@@ -233,8 +233,8 @@ end
 #_____________________________________________________________________________________________
 ruby_block "weave-npc" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['weave-npc']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['weave-npc']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -248,8 +248,8 @@ end
 
 ruby_block "weaver" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['weaver']"
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['weaver']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
