@@ -102,7 +102,7 @@ service 'kubelet' do
   pattern 'kubelet'
   action [:enable, :start]
 end
-sleep(1.minutes)
+sleep 60
 #_____________________________________________________________________________________________
 #
 # Start to create kubernetes cluster.
