@@ -203,14 +203,6 @@ end
 #
 # configure weave network for kube cluster.
 #_____________________________________________________________________________________________
-bash 'Set KUBECONFIG' do
-  code <<-EOH
-    sudo cp /etc/kubernetes/admin.conf $HOME/
-    sudo chown $(id -u):$(id -g) $HOME/admin.conf
-    export KUBECONFIG=$HOME/admin.conf
-    EOH
-end
-
 directory '/etc/weave-networking' do
   owner 'root'
   group 'root'
@@ -226,12 +218,14 @@ cookbook_file '/etc/weave-networking/weave-network.yaml' do
   action :create
 end
 
-bash 'configure weave network' do
+bash 'Set KUBECONFIG' do
   code <<-EOH
+    sudo cp /etc/kubernetes/admin.conf $HOME/
+    sudo chown $(id -u):$(id -g) $HOME/admin.conf
+    export KUBECONFIG=$HOME/admin.conf
     kubectl apply --filename "/etc/weave-networking/weave-network.yaml"
     EOH
-  #not_if "#{node['network']['interfaces']['weave']}"
-  not_if "ifconfig | grep weave"
+    not_if "ifconfig | grep weave"
 end
 #_____________________________________________________________________________________________
 #
