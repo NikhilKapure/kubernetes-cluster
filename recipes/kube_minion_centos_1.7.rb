@@ -99,8 +99,8 @@ end
 #_____________________________________________________________________________________________ 
 ruby_block "kubelet" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['kubelet']"
+    server=node['kubernetes-cluster']['localhost']
+    port=node['kubernetes-cluster']['kubelet']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
@@ -114,8 +114,8 @@ end
 
 ruby_block "kube-proxy" do
   block do
-    server = "node['kubernetes-cluster']['localhost']"
-    port = "node['kubernetes-cluster']['kube-proxy']"
+    server=node['kubernetes-cluster']['localhost']
+    port=node['kubernetes-cluster']['kube-proxy']
     begin
       Timeout.timeout(5) do
         Socket.tcp(server, port){}
