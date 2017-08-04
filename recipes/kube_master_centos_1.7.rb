@@ -102,13 +102,13 @@ service 'kubelet' do
   pattern 'kubelet'
   action [:enable, :start]
 end
-sleep 60
 #_____________________________________________________________________________________________
 #
 # Start to create kubernetes cluster.
 #_____________________________________________________________________________________________
 bash 'creating kubernetes cluster' do
   code <<-EOH
+    sleep 60
     kubeadm init --token-ttl 0
     EOH
   not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
