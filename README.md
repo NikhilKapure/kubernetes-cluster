@@ -57,6 +57,9 @@ Ensures the needed containers for a kubernetes node are in place and running
 
 Design document and Sequence diagram - 
  https://reancloud.atlassian.net/wiki/spaces/PLAT/pages/153844550/DEP-4341+Kubernetes+cluster+deploy+and+config+blueprint
+
+![Screenshot](diagrams/Kubernetes-Cluster_Architecture_diagram.png)
+![Screenshot](diagrams/Kubernetes-Sequence_diagram.png)
 # License and Author
 
 * Author:: Nikhil S. Kapure (<nikhil.kapure@reancloud.com>)
