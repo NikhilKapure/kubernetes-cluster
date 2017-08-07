@@ -29,7 +29,6 @@ ruby_block 'allow_to_change_hostname' do
   only_if { ::File.exist?('/etc/cloud/cloud.cfg') }
   not_if { ::File.readlines('/etc/cloud/cloud.cfg').grep(/^preserve_hostname:\s*true/).any? }
 end
-<<<<<<< HEAD
 # _____________________________________________________________________________________________
 #
 # Adding hostname entry in hosts file
@@ -43,14 +42,6 @@ ruby_block 'adding_masternode_entry' do
   end
   only_if { ::File.exist?('/etc/hosts') }
   not_if { ::File.readlines('/etc/hosts').grep(/^#{node['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any? }
-=======
-
-bash 'creating kubernetes cluster' do
-  code <<-EOH
-      hostnamectl set-hostname "#{node['kubernetes-cluster']['hostname']}"
-    EOH
->>>>>>> fea10570b5d0f6d058c0dbfdd282af8e156f1143
-end
 
 bash 'creating kubernetes cluster' do
   code <<-EOH
@@ -64,7 +55,7 @@ end
 cron 'chef-client' do
   time :reboot
   command 'cd /tmp/kitchen/cookbooks/ &  sudo chef-client -z -o kubernetes-cluster::default > /tmp/out.log'
-  user 'centos'
+  user node['kubernetes-cluster']['user-name'] 
   only_if { ::File.exists?('/tmp/kitchen/cookbooks/kubernetes-cluster')}
 end
 
@@ -121,17 +112,9 @@ service 'kubelet' do
   pattern 'kubelet'
   action [:enable, :start]
 end
-<<<<<<< HEAD
 
 reboot 'now' do
   action :nothing
-end
-
-=======
-reboot 'now' do
-  action :nothing
-  reason 'Cannot continue Chef run without a reboot.'
-  delay_mins 1
 end
 #_____________________________________________________________________________________________
 #
@@ -148,12 +131,6 @@ ruby_block 'adding_masternode_entry' do
   not_if { ::File.readlines('/etc/hosts').grep(/^#{node['kubernetes-cluster']['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any?}
   notifies :reboot_now, 'reboot[now]', :immediately
 end
-bash 'creating kubernetes cluster' do
-  code <<-EOH
-      hostnamectl set-hostname "#{node['kubernetes-cluster']['hostname']}"
-    EOH
-end
-
 #_____________________________________________________________________________________________
 #
 # Start to create kubernetes cluster.
@@ -161,37 +138,6 @@ end
 bash 'creating kubernetes cluster' do
   code <<-EOH
     kubeadm init --token-ttl 0
-    EOH
-  not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
-end
->>>>>>> fea10570b5d0f6d058c0dbfdd282af8e156f1143
-#_____________________________________________________________________________________________
-#
-# Adding hostname entry in hosts file
-#_____________________________________________________________________________________________
-ruby_block 'adding_masternode_entry' do
-  block do
-    file = Chef::Util::FileEdit.new('/etc/hosts')
-    file.insert_line_if_no_match(/^#{node['kubernetes-cluster']['ipaddress']}.*/,  "#{node['kubernetes-cluster']['ipaddress']} #{node['kubernetes-cluster']['hostname']}")
-    file.search_file_replace_line(/^#{node['kubernetes-cluster']['ipaddress']}.*/, "#{node['kubernetes-cluster']['ipaddress']} #{node['kubernetes-cluster']['hostname']}")
-    file.write_file
-  end
-  only_if { ::File.exist?('/etc/hosts') }
-  not_if { ::File.readlines('/etc/hosts').grep(/^#{node['kubernetes-cluster']['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any?}
-  notifies :reboot_now, 'reboot[now]', :immediately
-end
-bash 'creating kubernetes cluster' do
-  code <<-EOH
-      hostnamectl set-hostname "#{node['kubernetes-cluster']['hostname']}"
-    EOH
-end
-# _____________________________________________________________________________________________
-#
-# Start to create kubernetes cluster.
-# _____________________________________________________________________________________________
-bash 'creating kubernetes cluster' do
-  code <<-EOH
-      kubeadm init --token-ttl 0 > /tmp/output.log
     EOH
   not_if { ::File.exist?('/etc/kubernetes/admin.conf') }
 end
@@ -288,11 +234,7 @@ ruby_block 'etcd' do
     end
   end
 end
-<<<<<<< HEAD
-# _____________________________________________________________________________________________
-=======
 #_____________________________________________________________________________________________
->>>>>>> fea10570b5d0f6d058c0dbfdd282af8e156f1143
 #
 # configure weave network for kube cluster.
 # _____________________________________________________________________________________________

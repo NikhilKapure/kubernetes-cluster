@@ -1,0 +1,7 @@
+DEPENDENCIES
+  kubernetes-cluster
+    path: .
+    metadata: true
+
+GRAPH
+  kubernetes-cluster (0.1.3)

@@ -8,7 +8,7 @@
 default['kubernetes-cluster']['localhost'] = '127.0.0.1'
 default['kubernetes-cluster']['hostname'] = 'kubemaster'
 default['kubernetes-cluster']['ipaddress'] = '10.0.11.176'
-# Port List for Follwing Services -
+default['kubernetes-cluster']['user-name'] = 'centos'
 default['kubernetes-cluster']['kubelet'] = '10255'
 default['kubernetes-cluster']['kube-scheduler'] = '10251'
 default['kubernetes-cluster']['kube-controlle'] = '10252'

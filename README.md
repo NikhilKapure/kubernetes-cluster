@@ -16,7 +16,8 @@ OS Support:
 
   * `['kubernetes-cluster']['localhost'] = '127.0.0.1' - This IP require for checking respective kubernetes port
   * `['kubernetes-cluster']['hostname'] = 'kubemaster' **required** - Hostname for Master node
-  * `['kubernetes-cluster']['ipaddress'] = '' **required** - The private ip address of your kubernetes master. its require for worker to connect kubenetes master
+  * `['kubernetes-cluster']['ipaddress'] = '' **required** - The private ip address of your kubernetes master. its require for worker to connect kubenetes master.
+  * `['kubernetes-cluster']['user-name'] = 'centos' - This is require for master recipe. allow permission to create cron job. 
   * `['kubernetes-cluster']['kubelet'] = '10255' - Non-changeble. This used only for port verification.  
   * `['kubernetes-cluster']['kube-scheduler'] = '10251' - Non-changeble. This used only for port verification.
   * `['kubernetes-cluster']['kube-controlle'] = '10252' - Non-changeble. This used only for port verification.
@@ -55,11 +56,119 @@ Deploy the containers needed to make a functioning Kubernetes master locally on 
 
 Ensures the needed containers for a kubernetes node are in place and running
 
-Design document and Sequence diagram - 
+### Design document and Sequence diagram - 
  https://reancloud.atlassian.net/wiki/spaces/PLAT/pages/153844550/DEP-4341+Kubernetes+cluster+deploy+and+config+blueprint
 
 ![Screenshot](diagrams/Kubernetes-Cluster_Architecture_diagram.png)
 ![Screenshot](diagrams/Kubernetes-Sequence_diagram.png)
-# License and Author
 
+#### (`.kitchen.yaml`) for Master 
+```sh
+---
+driver:
+  name: ec2
+  region: us-west-2
+  subnet_id: subnet-632b1404
+  security_group_ids: ["sg-c421a3be"]
+  aws_ssh_key_id: Kubernetes
+
+  tags:
+    Owner: nikhil.kapure
+    Environment: Testing
+    Project: reanassess
+
+transport:
+  ssh_key: C:\Users\OPEX\Desktop\Kubernetes.pem
+
+verifier:
+  name: inspec
+
+platforms:
+  # CentOS 7
+  - name: centos-7
+    driver:
+      image_id: ami-0c2aba6c
+      instance_type: m3.medium
+      spot_price: 0.5
+      tags:
+        Name: kubernetes-centos-7
+suites:
+  - name: default
+    run_list:
+      - recipe[kubernetes-cluster::default]
+    attributes:
+      kubernetes-cluster:
+        agent: master
+        user-name: centos
+```
+
+#### (`.kitchen.yaml`) for Worker 
+```sh
+---
+driver:
+  name: ec2
+  region: us-west-2
+  subnet_id: subnet-632b1404
+  security_group_ids: ["sg-c421a3be"]
+  aws_ssh_key_id: Kubernetes
+
+  tags:
+    Owner: nikhil.kapure
+    Environment: Testing
+    Project: reanassess
+
+transport:
+  ssh_key: C:\Users\OPEX\Desktop\Kubernetes.pem
+
+verifier:
+  name: inspec
+
+platforms:
+  # CentOS 7
+  - name: centos-7
+    driver:
+      image_id: ami-0c2aba6c
+      instance_type: m3.medium
+      spot_price: 0.5
+      tags:
+        Name: kubernetes-centos-7
+suites:
+  - name: default
+    run_list:
+      - recipe[kubernetes-cluster::default]
+    attributes:
+      kubernetes-cluster:
+        ipaddress: 10.0.11.167
+        token: 62c3b1.b709f5acc5c4ade3
+        agent: worker
+```
+
+## How to verify ?
+
+```sh
+$ sudo cp /etc/kubernetes/admin.conf $HOME/
+$ sudo chown $(id -u):$(id -g) $HOME/admin.conf
+$ export KUBECONFIG=$HOME/admin.conf
+$ kubectl get nodes
+
+```
+#### Accessing the cluster API -
+You can explore the API with curl, wget, or a browser, like so:
+
+```sh
+$ curl https://<mater_node_IP>:6443/api/
+{
+  "kind": "APIVersions",
+  "versions": [
+    "v1"
+  ],
+  "serverAddressByClientCIDRs": [
+    {
+      "clientCIDR": "0.0.0.0/0",
+      "serverAddress": "10.0.11.167:6443"
+    }
+  ]
+}
+```
+# License and Author
 * Author:: Nikhil S. Kapure (<nikhil.kapure@reancloud.com>)
