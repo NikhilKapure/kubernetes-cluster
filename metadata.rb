@@ -6,7 +6,7 @@ description 'Installs/Configures Kubernetes-Cluster'
 long_description 'Installs/Configures Kubernetes-Cluster'
 version '0.1.3'
 chef_version '>= 12.1' if respond_to?(:chef_version)
-supports %w(debian rhel)
+supports 'centos', '>= 7'
 
 issues_url 'https://github.com/reancloud/deploynow-blueprintsl/issues' if respond_to?(:issues_url)
 source_url 'https://github.com/reancloud/deploynow-blueprints' if respond_to?(:source_url)

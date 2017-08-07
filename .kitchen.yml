@@ -1,26 +1,37 @@
 ---
 driver:
-  name: vagrant
+  name: ec2
+  region: us-west-2
+  subnet_id: subnet-632b1404
+  security_group_ids: ["sg-c421a3be"]
+  aws_ssh_key_id: Kubernetes
+#  iam_profile_name: s3accesstoec2
+  tags:
+    Owner: nikhil.kapure
+    Environment: Testing
+    Project: reanassess
 
-provisioner:
-  name: chef_zero
-  # You may wish to disable always updating cookbooks in CI or other testing environments.
-  # For example:
-  #   always_update_cookbooks: <%= !ENV['CI'] %>
-  always_update_cookbooks: true
+transport:
+  ssh_key: C:\Users\OPEX\Desktop\Kubernetes.pem
 
 verifier:
   name: inspec
 
 platforms:
-  - name: ubuntu-16.04
-  - name: centos-7.3
-
+  # CentOS 7
+  - name: centos-7
+    driver:
+      image_id: ami-0c2aba6c
+      instance_type: m3.medium
+      spot_price: 0.5
+      tags:
+        Name: kubernetes-centos-7
 suites:
   - name: default
     run_list:
-      - recipe[Kubernetes-Cluster::default]
-    verifier:
-      inspec_tests:
-        - test/smoke/default
+      - recipe[kubernetes-cluster::default]
     attributes:
+      kubernetes-cluster:
+        ipaddress: 10.0.11.167
+        token: 62c3b1.b709f5acc5c4ade3
+        agent: worker

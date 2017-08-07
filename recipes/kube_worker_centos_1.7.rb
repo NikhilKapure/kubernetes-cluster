@@ -6,28 +6,28 @@
 #
 # All rights reserved - Do Not Redistribute
 #=======================================================================================================================
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # Verify compatiblity.
-#____________________________________________________________________________________________
-if (node['platform'] == "centos") & (node['platform_version'] >= "7") & (node['kubernetes-cluster']['k8s-version'] == "1.7")
-  else
+# ____________________________________________________________________________________________
+if (node['platform'] == 'centos') & (node['platform_version'] >= '7') & (node['kubernetes-cluster']['k8s-version'] == '1.7')
+else
   Chef::Log.info('OS Compatibility issue.')
   return
 end
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # add master hostname in hosts file
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 ruby_block 'allow_to_change_hostname' do
   block do
     file = Chef::Util::FileEdit.new('/etc/cloud/cloud.cfg')
-    file.insert_line_if_no_match(/^preserve_hostname:\s*true.*/,  "preserve_hostname: true")
-    file.search_file_replace_line(/^preserve_hostname:\s*true.*/,  "preserve_hostname: true")
+    file.insert_line_if_no_match(/^preserve_hostname:\s*true.*/, 'preserve_hostname: true')
+    file.search_file_replace_line(/^preserve_hostname:\s*true.*/, 'preserve_hostname: true')
     file.write_file
   end
   only_if { ::File.exist?('/etc/cloud/cloud.cfg') }
-  not_if { ::File.readlines('/etc/cloud/cloud.cfg').grep(/^preserve_hostname:\s*true/).any?}
+  not_if { ::File.readlines('/etc/cloud/cloud.cfg').grep(/^preserve_hostname:\s*true/).any? }
 end
 
 ruby_block 'adding_masternode_entry' do
@@ -38,35 +38,35 @@ ruby_block 'adding_masternode_entry' do
     file.write_file
   end
   only_if { ::File.exist?('/etc/hosts') }
-  not_if { ::File.readlines('/etc/hosts').grep(/^#{node['kubernetes-cluster']['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any?}
+  not_if { ::File.readlines('/etc/hosts').grep(/^#{node['kubernetes-cluster']['ipaddress']}\s*#{node['kubernetes-cluster']['hostname']}/).any? }
 end
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # Generates yum_repository configs for latest CentOS release.
 # By default the base, extras, updates repos are enabled.
-#_____________________________________________________________________________________________
- yum_repository 'kubernetes' do
+# _____________________________________________________________________________________________
+yum_repository 'kubernetes' do
   description "CentOS-#{node['platform_version'].to_i} - Base"
-  baseurl "http://yum.kubernetes.io/repos/kubernetes-el7-x86_64"
+  baseurl 'http://yum.kubernetes.io/repos/kubernetes-el7-x86_64'
   enabled true
   gpgcheck false
   repo_gpgcheck false
   action :create
 end
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # To install following packages.
 # Package list - docker kubelet kubeadm kubectl kubernetes-cni wget vim ntp
-#_____________________________________________________________________________________________
-%w{wget vim docker kubelet kubeadm kubectl kubernetes-cni ntp}.each do |pkg|
+# _____________________________________________________________________________________________
+%w(wget vim docker kubelet kubeadm kubectl kubernetes-cni ntp).each do |pkg|
   yum_package pkg do
     action :install
   end
 end
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # Disable Selinux security.
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 ruby_block 'disable_selinux' do
   block do
     file = Chef::Util::FileEdit.new('/etc/selinux/config')
@@ -75,10 +75,10 @@ ruby_block 'disable_selinux' do
   end
   not_if 'grep -E "SELINUX.*=.*disabled.*" /etc/selinux/config'
 end
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # To enable and start docker kubelet ntp services.
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 service 'ntpd' do
   pattern 'ntpd'
   action [:enable, :start]
@@ -93,17 +93,17 @@ service 'kubelet' do
   pattern 'kubelet'
   action [:enable, :start]
 end
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # Verify All required ports are open or not.
-#_____________________________________________________________________________________________ 
-ruby_block "kubelet" do
+# _____________________________________________________________________________________________
+ruby_block 'kubelet' do
   block do
-    server=node['kubernetes-cluster']['localhost']
-    port=node['kubernetes-cluster']['kubelet']
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['kubelet']
     begin
       Timeout.timeout(5) do
-        Socket.tcp(server, port){}
+        Socket.tcp(server, port) {}
       end
       Chef::Log.info "kubelet=#{node['kubernetes-cluster']['kubelet']} connections open"
     rescue
@@ -112,13 +112,13 @@ ruby_block "kubelet" do
   end
 end
 
-ruby_block "kube-proxy" do
+ruby_block 'kube-proxy' do
   block do
-    server=node['kubernetes-cluster']['localhost']
-    port=node['kubernetes-cluster']['kube-proxy']
+    server = node['kubernetes-cluster']['localhost']
+    port = node['kubernetes-cluster']['kube-proxy']
     begin
       Timeout.timeout(5) do
-        Socket.tcp(server, port){}
+        Socket.tcp(server, port) {}
       end
       Chef::Log.info "kube-proxy=#{node['kubernetes-cluster']['kube-proxy']} connections open"
     rescue
@@ -126,14 +126,13 @@ ruby_block "kube-proxy" do
     end
   end
 end
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 #
 # Join kubernetes cluster using kubeadm command with kube master token.
-#_____________________________________________________________________________________________
+# _____________________________________________________________________________________________
 bash 'creating kubernetes cluster' do
   code <<-EOH
     kubeadm join --token #{node['kubernetes-cluster']['token']} #{node['kubernetes-cluster']['ipaddress']}:#{node['kubernetes-cluster']['kube-apiserver']} --skip-preflight-checks
     EOH
   not_if { ::File.exist?('/etc/kubernetes/kubelet.conf') }
 end
-
