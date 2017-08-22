@@ -10,7 +10,7 @@
 #
 # Verify compatiblity.
 # ____________________________________________________________________________________________
-if (node['platform'] == 'centos') & (node['platform_version'] >= '7') & (node['kubernetes-cluster']['k8s-version'] == '1.7')
+if (node['platform'] == 'fedora') & (node['platform_version'] >= '25') & (node['kubernetes-cluster']['k8s-version'] == '1.7')
 else
   Chef::Log.info('OS Compatibility issue.')
   return
@@ -46,7 +46,7 @@ end
 # By default the base, extras, updates repos are enabled.
 # _____________________________________________________________________________________________
 yum_repository 'kubernetes' do
-  description "CentOS-#{node['platform_version'].to_i} - Base"
+  description "#{node['platform']}-#{node['platform_version'].to_i} - Base"
   baseurl 'http://yum.kubernetes.io/repos/kubernetes-el7-x86_64'
   enabled true
   gpgcheck false
@@ -58,9 +58,13 @@ end
 # To install following packages.
 # Package list - docker kubelet kubeadm kubectl kubernetes-cni wget vim ntp
 # _____________________________________________________________________________________________
-package %w(telnet docker kubelet kubeadm kubectl kubernetes-cni ntp) do
+package %w(telnet ntp) do
     action :install
-    version [ '0.17-60.el7', '1.12.6-32.git88a4867.el7.centos', '1.7.3-1', '1.7.3-1', '1.7.3-1', '0.5.1-0', '' ]
+end
+
+package %w(docker kubelet kubeadm kubectl kubernetes-cni) do
+    action :install
+    version [ '2:1.12.6-7.gitae7d637.fc25', '1.7.4-0', '1.7.4-0', '1.7.3-1', '0.5.1-0' ]
 end
 # _____________________________________________________________________________________________
 #

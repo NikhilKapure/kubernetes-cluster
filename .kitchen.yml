@@ -3,7 +3,7 @@ driver:
   name: ec2
   region: us-west-2
   subnet_id: subnet-632b1404
-  security_group_ids: ["sg-c421a3be"]
+  security_group_ids: ["sg-c00149ba"]
   aws_ssh_key_id: Kubernetes
 #  iam_profile_name: s3accesstoec2
   tags:
@@ -19,19 +19,20 @@ verifier:
 
 platforms:
   # CentOS 7
-  - name: centos-7
+  - name: Ubuntu16
     driver:
-      image_id: ami-0c2aba6c
-      instance_type: m3.medium
-      spot_price: 0.5
+      image_id: ami-0071dd60
+      instance_type: t2.medium
+      #spot_price: 0.5
       tags:
-        Name: kubernetes-centos-7
+        Name: kubernetes-Fedora25
 suites:
   - name: default
     run_list:
       - recipe[kubernetes-cluster::default]
     attributes:
       kubernetes-cluster:
-        ipaddress: 10.0.11.167
-        token: 62c3b1.b709f5acc5c4ade3
         agent: worker
+        ipaddress: "10.0.11.158"
+        token: "3e91d9.e0a03180686b4dde"
+        user-name: "fedora"

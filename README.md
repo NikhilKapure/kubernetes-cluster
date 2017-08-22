@@ -9,26 +9,26 @@ Currently supported resources:
 
 OS Support: 
 
-  * Supported for platform_family=RHEL v7+
+  * Supported for Centos v7+, Ubuntu 16.04, Fedora 25
   * Kubernetes 1.7 only for now. 
 
 # Attributes
 
-  * `['kubernetes-cluster']['localhost'] = '127.0.0.1' - This IP require for checking respective kubernetes port
-  * `['kubernetes-cluster']['hostname'] = 'kubemaster' **required** - Hostname for Master node
-  * `['kubernetes-cluster']['ipaddress'] = '' **required** - The private ip address of your kubernetes master. its require for worker to connect kubenetes master.
-  * `['kubernetes-cluster']['user-name'] = 'centos' - This is require for master recipe. allow permission to create cron job. 
-  * `['kubernetes-cluster']['kubelet'] = '10255' - Non-changeble. This used only for port verification.  
-  * `['kubernetes-cluster']['kube-scheduler'] = '10251' - Non-changeble. This used only for port verification.
-  * `['kubernetes-cluster']['kube-controlle'] = '10252' - Non-changeble. This used only for port verification.
-  * `['kubernetes-cluster']['kube-proxy'] = '10256' - Non-changeble. This used only for port verification.
-  * `['kubernetes-cluster']['kube-apiserver'] = '6443' - Non-changeble. This used only for port verification. its require for worker to connect kubenetes master
-  * `['kubernetes-cluster']['etcd'] = '2380'- Non-changeble. This used only for port verification.
-  * `['kubernetes-cluster']['weave-npc'] = '6781' - Non-changeble. This used only for port verification.
-  * `['kubernetes-cluster']['weaver'] = '6782' - Non-changeble. This used only for port verification.
-  * `['kubernetes-cluster']['k8s-version'] = '1.7' - Version of kubernetes
-  * `['kubernetes-cluster']['token'] = '7de59e.b859a71e082d41a5' **required** - Provide a token after your master node ready. its require for worker to connect kubenetes master
-  * `['kubernetes-cluster']['agent'] = 'master' **required** - Select setup agent [worker/master]
+  * `['kubernetes-cluster']['localhost']` = '127.0.0.1' - This IP require for checking respective kubernetes port
+  * `['kubernetes-cluster']['hostname']` = 'kubemaster' **required** - Hostname for Master node
+  * `['kubernetes-cluster']['ipaddress']` = '' **required** - The private ip address of your kubernetes master. its require for worker to connect kubenetes master.
+  * `['kubernetes-cluster']['user-name']` = 'centos' - This is require for master recipe. allow permission to create cron job. 
+  * `['kubernetes-cluster']['kubelet']` = '10255' - Non-changeble. This used only for port verification.  
+  * `['kubernetes-cluster']['kube-scheduler']` = '10251' - Non-changeble. This used only for port verification.
+  * `['kubernetes-cluster']['kube-controlle']` = '10252' - Non-changeble. This used only for port verification.
+  * `['kubernetes-cluster']['kube-proxy']` = '10256' - Non-changeble. This used only for port verification.
+  * `['kubernetes-cluster']['kube-apiserver']` = '6443' - Non-changeble. This used only for port verification. its require for worker to connect kubenetes master
+  * `['kubernetes-cluster']['etcd']` = '2380'- Non-changeble. This used only for port verification.
+  * `['kubernetes-cluster']['weave-npc']` = '6781' - Non-changeble. This used only for port verification.
+  * `['kubernetes-cluster']['weaver']` = '6782' - Non-changeble. This used only for port verification.
+  * `['kubernetes-cluster']['k8s-version']` = '1.7' - Version of kubernetes
+  * `['kubernetes-cluster']['token']` = '7de59e.b859a71e082d41a5' **required** - Provide a token after your master node ready. its require for worker to connect kubenetes master
+  * `['kubernetes-cluster']['agent']` = 'master' **required** - Select setup agent [worker/master]
 
 # Recipes
 
